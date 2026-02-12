@@ -32,12 +32,28 @@ interface LocationProviderProps {
   children: ReactNode;
 }
 
+const DEMO_LOCATIONS: Record<string, Location> = {
+  'sacramento': { latitude: 38.5816, longitude: -121.4944, city: 'Sacramento', state: 'CA', country: 'USA', displayName: 'Sacramento, CA' },
+  'sacramento-flood': { latitude: 38.5816, longitude: -121.4944, city: 'Sacramento', state: 'CA', country: 'USA', displayName: 'Sacramento, CA' },
+  'santa-rosa': { latitude: 38.4404, longitude: -122.7141, city: 'Santa Rosa', state: 'CA', country: 'USA', displayName: 'Santa Rosa, CA' },
+  'california-wildfire': { latitude: 38.4404, longitude: -122.7141, city: 'Santa Rosa', state: 'CA', country: 'USA', displayName: 'Santa Rosa, CA' },
+  'phoenix': { latitude: 33.4484, longitude: -112.0740, city: 'Phoenix', state: 'AZ', country: 'USA', displayName: 'Phoenix, AZ' },
+  'phoenix-heatwave': { latitude: 33.4484, longitude: -112.0740, city: 'Phoenix', state: 'AZ', country: 'USA', displayName: 'Phoenix, AZ' }
+};
+
 export function LocationProvider({ children }: LocationProviderProps) {
   const [location, setLocationState] = useState<Location | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const activeScenario = localStorage.getItem('activeScenario');
+
+    if (activeScenario && activeScenario !== 'none' && DEMO_LOCATIONS[activeScenario]) {
+      setLocationState(DEMO_LOCATIONS[activeScenario]);
+      return;
+    }
+
     const savedLocation = localStorage.getItem('selectedLocation');
     if (savedLocation) {
       try {
@@ -48,6 +64,29 @@ export function LocationProvider({ children }: LocationProviderProps) {
     } else {
       setLocationState(DEFAULT_LOCATION);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleDemoScenarioChange = (event: CustomEvent) => {
+      const { location } = event.detail;
+      if (location) {
+        setLocationState(location);
+      } else {
+        const savedLocation = localStorage.getItem('selectedLocation');
+        if (savedLocation) {
+          try {
+            setLocationState(JSON.parse(savedLocation));
+          } catch {
+            setLocationState(DEFAULT_LOCATION);
+          }
+        } else {
+          setLocationState(DEFAULT_LOCATION);
+        }
+      }
+    };
+
+    window.addEventListener('demoScenarioChange', handleDemoScenarioChange as EventListener);
+    return () => window.removeEventListener('demoScenarioChange', handleDemoScenarioChange as EventListener);
   }, []);
 
   const setLocation = (newLocation: Location) => {

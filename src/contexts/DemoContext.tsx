@@ -109,17 +109,28 @@ export function DemoProvider({ children }: DemoProviderProps) {
   const loadScenario = (scenario: DemoScenario) => {
     setActiveScenario(scenario);
     setIsDemoModeState(scenario !== 'none');
+    if (scenario !== 'none' && DEMO_SCENARIOS[scenario]) {
+      const demoData = DEMO_SCENARIOS[scenario];
+      if (demoData?.location) {
+        localStorage.setItem('selectedLocation', JSON.stringify(demoData.location));
+        window.dispatchEvent(new CustomEvent('demoScenarioChange', { detail: { location: demoData.location } }));
+      }
+    }
   };
 
   const exitDemoMode = () => {
     setActiveScenario('none');
     setIsDemoModeState(false);
+    localStorage.removeItem('activeScenario');
+    window.dispatchEvent(new CustomEvent('demoScenarioChange', { detail: { location: null } }));
   };
 
   const setDemoMode = (enabled: boolean) => {
     setIsDemoModeState(enabled);
     if (!enabled) {
       setActiveScenario('none');
+      localStorage.removeItem('activeScenario');
+      window.dispatchEvent(new CustomEvent('demoScenarioChange', { detail: { location: null } }));
     }
   };
 
@@ -127,6 +138,13 @@ export function DemoProvider({ children }: DemoProviderProps) {
     const validScenario = scenario as DemoScenario;
     setActiveScenario(validScenario);
     setIsDemoModeState(validScenario !== 'none');
+    if (validScenario !== 'none' && DEMO_SCENARIOS[validScenario]) {
+      const demoData = DEMO_SCENARIOS[validScenario];
+      if (demoData?.location) {
+        localStorage.setItem('selectedLocation', JSON.stringify(demoData.location));
+        window.dispatchEvent(new CustomEvent('demoScenarioChange', { detail: { location: demoData.location } }));
+      }
+    }
   };
 
   return (
