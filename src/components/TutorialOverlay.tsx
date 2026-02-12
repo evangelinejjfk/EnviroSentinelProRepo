@@ -16,13 +16,15 @@ export function TutorialOverlay() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const isLastStep = currentStep === totalSteps - 1;
+
   useEffect(() => {
     if (isActive && currentStepData && currentStepData.page !== location.pathname) {
       navigate(currentStepData.page);
     }
   }, [currentStep, isActive, currentStepData, navigate, location.pathname]);
 
-  if (!isActive || !currentStepData) return null;
+  if (!isActive || !currentStepData || isLastStep) return null;
 
   return (
     <>
@@ -112,7 +114,7 @@ export function TutorialOverlay() {
                   onClick={nextStep}
                   className="flex items-center space-x-2 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
                 >
-                  <span>{currentStep === totalSteps - 1 ? 'Complete' : 'Next'}</span>
+                  <span>Next</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>

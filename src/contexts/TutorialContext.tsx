@@ -30,10 +30,10 @@ const TutorialContext = createContext<TutorialContextType | undefined>(undefined
 const tutorialSteps: TutorialStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to Climate Guardian',
+    title: 'Welcome to EnviroSentinel Pro',
     description: 'Your comprehensive environmental monitoring platform',
     page: '/',
-    explanation: 'Climate Guardian combines real-time data from multiple sources to provide actionable environmental insights.',
+    explanation: 'EnviroSentinel Pro combines real-time data from multiple sources to provide actionable environmental insights.',
     whyItMatters: 'Climate risks are interconnected. Understanding them together helps you make informed decisions.'
   },
   {
@@ -146,7 +146,7 @@ const tutorialSteps: TutorialStep[] = [
   {
     id: 'completion',
     title: 'Tutorial Complete',
-    description: "You're ready to use Climate Guardian!",
+    description: "You're ready to use EnviroSentinel Pro!",
     page: '/dashboard',
     explanation: 'You now understand all major features. Switch to real data mode to monitor your actual location.',
     whyItMatters: 'Knowledge is power. Use these tools to protect yourself and your community from environmental threats.'

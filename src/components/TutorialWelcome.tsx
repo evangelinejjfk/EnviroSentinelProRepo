@@ -51,7 +51,7 @@ export function TutorialWelcome() {
             <div className="flex items-center space-x-3">
               <BookOpen className="w-10 h-10" />
               <div>
-                <h2 className="text-3xl font-bold">Welcome to Climate Guardian</h2>
+                <h2 className="text-3xl font-bold">Welcome to EnviroSentinel Pro</h2>
                 <p className="text-emerald-100 mt-1">Interactive Tutorial Mode</p>
               </div>
             </div>
@@ -64,7 +64,7 @@ export function TutorialWelcome() {
             </button>
           </div>
           <p className="text-white/90 text-lg">
-            Learn how Climate Guardian works by exploring a real-world scenario with demo data
+            Learn how EnviroSentinel Pro works by exploring a real-world scenario with demo data
           </p>
         </div>
 

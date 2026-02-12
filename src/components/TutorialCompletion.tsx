@@ -10,7 +10,10 @@ export function TutorialCompletion() {
 
   useEffect(() => {
     if (isActive && currentStep === totalSteps - 1) {
-      setTimeout(() => setShowModal(true), 500);
+      const timer = setTimeout(() => setShowModal(true), 500);
+      return () => clearTimeout(timer);
+    } else {
+      setShowModal(false);
     }
   }, [isActive, currentStep, totalSteps]);
 
@@ -50,7 +53,7 @@ export function TutorialCompletion() {
               Congratulations!
             </h2>
             <p className="text-white/90 text-center text-lg">
-              You've completed the Climate Guardian tutorial
+              You've completed the EnviroSentinel Pro tutorial
             </p>
           </div>
         </div>
