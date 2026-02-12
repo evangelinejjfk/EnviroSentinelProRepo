@@ -1,8 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.heat';
 import { Alert, WildfireData } from '../types';
 import { CommunityReport } from '../services/communityReportService';
+import { heatmapService, HeatmapLayer } from '../services/heatmapService';
+import { Layers } from 'lucide-react';
 
 interface MapViewProps {
   alerts: Alert[];
@@ -24,6 +27,10 @@ export function MapView({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const heatLayersRef = useRef<Map<HeatmapLayer, any>>(new Map());
+
+  const [activeHeatmaps, setActiveHeatmaps] = useState<Set<HeatmapLayer>>(new Set(['flood', 'wildfire', 'pollution', 'heat', 'eco']));
+  const [showHeatmapControls, setShowHeatmapControls] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -201,9 +208,123 @@ export function MapView({
     });
   }, [alerts, wildfires, communityReports, onAlertClick]);
 
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    const allLayers: HeatmapLayer[] = ['flood', 'wildfire', 'pollution', 'heat', 'eco'];
+
+    allLayers.forEach(layerType => {
+      const existingLayer = heatLayersRef.current.get(layerType);
+
+      if (activeHeatmaps.has(layerType)) {
+        if (!existingLayer) {
+          const heatmapData = heatmapService.getHeatmapForLayer(layerType);
+          const layerInfo = heatmapService.getLayerInfo(layerType);
+
+          const heatPoints: [number, number, number][] = heatmapData.map(point => [
+            point.lat,
+            point.lng,
+            point.intensity
+          ]);
+
+          const gradients: Record<HeatmapLayer, Record<number, string>> = {
+            flood: { 0.0: 'rgba(59, 130, 246, 0)', 0.5: 'rgba(59, 130, 246, 0.4)', 1.0: 'rgba(59, 130, 246, 0.8)' },
+            wildfire: { 0.0: 'rgba(249, 115, 22, 0)', 0.5: 'rgba(249, 115, 22, 0.4)', 1.0: 'rgba(249, 115, 22, 0.8)' },
+            pollution: { 0.0: 'rgba(139, 92, 246, 0)', 0.5: 'rgba(139, 92, 246, 0.4)', 1.0: 'rgba(139, 92, 246, 0.8)' },
+            heat: { 0.0: 'rgba(239, 68, 68, 0)', 0.5: 'rgba(239, 68, 68, 0.4)', 1.0: 'rgba(239, 68, 68, 0.8)' },
+            eco: { 0.0: 'rgba(16, 185, 129, 0)', 0.5: 'rgba(16, 185, 129, 0.4)', 1.0: 'rgba(16, 185, 129, 0.8)' }
+          };
+
+          const heatLayer = (L as any).heatLayer(heatPoints, {
+            radius: 35,
+            blur: 25,
+            maxZoom: 10,
+            max: 1.0,
+            gradient: gradients[layerType]
+          }).addTo(mapInstanceRef.current!);
+
+          heatLayersRef.current.set(layerType, heatLayer);
+        }
+      } else {
+        if (existingLayer) {
+          mapInstanceRef.current!.removeLayer(existingLayer);
+          heatLayersRef.current.delete(layerType);
+        }
+      }
+    });
+  }, [activeHeatmaps]);
+
+  const toggleHeatmap = (layer: HeatmapLayer) => {
+    setActiveHeatmaps(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(layer)) {
+        newSet.delete(layer);
+      } else {
+        newSet.add(layer);
+      }
+      return newSet;
+    });
+  };
+
+  const heatmapLayers: HeatmapLayer[] = ['flood', 'wildfire', 'pollution', 'heat', 'eco'];
+
   return (
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full rounded-lg" />
+
+      <div className="absolute top-4 right-4 z-[1000]">
+        <button
+          onClick={() => setShowHeatmapControls(!showHeatmapControls)}
+          className="bg-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-gray-50 transition-colors"
+        >
+          <Layers className="w-5 h-5 text-gray-700" />
+          <span className="font-medium text-gray-700">Heatmap Layers</span>
+        </button>
+
+        {showHeatmapControls && (
+          <div className="mt-2 bg-white rounded-lg shadow-lg p-4 min-w-[250px]">
+            <h3 className="font-semibold text-gray-800 mb-3 text-sm">Toggle Layers</h3>
+            <div className="space-y-2">
+              {heatmapLayers.map(layer => {
+                const layerInfo = heatmapService.getLayerInfo(layer);
+                return (
+                  <label
+                    key={layer}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={activeHeatmaps.has(layer)}
+                      onChange={() => toggleHeatmap(layer)}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: layerInfo.color }}
+                      />
+                      <span className="text-sm font-medium text-gray-700">{layerInfo.name}</span>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setActiveHeatmaps(new Set(heatmapLayers))}
+              className="w-full mt-3 px-3 py-1.5 text-xs bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100 transition-colors font-medium"
+            >
+              Enable All
+            </button>
+            <button
+              onClick={() => setActiveHeatmaps(new Set())}
+              className="w-full mt-2 px-3 py-1.5 text-xs bg-gray-50 text-gray-700 rounded hover:bg-gray-100 transition-colors font-medium"
+            >
+              Disable All
+            </button>
+          </div>
+        )}
+      </div>
+
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }

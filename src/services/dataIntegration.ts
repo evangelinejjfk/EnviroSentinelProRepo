@@ -41,6 +41,7 @@ export const dataIntegrationService = {
   async fetchFloodForecast(latitude: number, longitude: number): Promise<FloodPrediction> {
     try {
       const nearestSite = await this.findNearestUSGSSite(latitude, longitude);
+      const weatherData = await this.fetchWeatherData(latitude, longitude);
 
       if (!nearestSite) {
         return generateDemoFloodData(latitude, longitude);
@@ -66,18 +67,36 @@ export const dataIntegrationService = {
       const currentLevel = currentValue ? parseFloat(currentValue.value) : 0;
 
       const historicalValues = values.slice(-24).map((v: any) => parseFloat(v.value));
+      const maxHistorical = Math.max(...historicalValues);
+      const minHistorical = Math.min(...historicalValues);
       const avgLevel = historicalValues.reduce((a: number, b: number) => a + b, 0) / historicalValues.length;
-      const trend = currentLevel - avgLevel;
-      const predictedLevel = currentLevel + (trend * 12);
 
-      const siteName = timeSeries.sourceInfo?.siteName || 'Unknown Location';
-      const floodThreshold = currentLevel * 1.5;
+      const recentTrend = currentLevel - historicalValues[0];
+
+      const totalForecastRain = weatherData.forecast.reduce((sum: number, f: any) => sum + (f.rain || 0), 0);
+      const rainfallImpact = totalForecastRain * 0.15;
+
+      const predictedLevel = currentLevel + (recentTrend * 0.8) + rainfallImpact;
+
+      const historicalRange = maxHistorical - minHistorical;
+      const floodThreshold = avgLevel + (historicalRange * 1.5);
 
       let timeToFlood = 48;
-      if (trend !== 0 && Math.abs(trend) > 0.01) {
-        const calculated = Math.abs(Math.floor((predictedLevel - floodThreshold) / trend * 2));
-        timeToFlood = Math.min(Math.max(calculated, 12), 120);
+      let confidence = 75;
+
+      if (predictedLevel > floodThreshold) {
+        const rateOfRise = (predictedLevel - currentLevel) / 24;
+        if (rateOfRise > 0.01) {
+          timeToFlood = Math.floor((floodThreshold - currentLevel) / rateOfRise);
+          timeToFlood = Math.min(Math.max(timeToFlood, 6), 72);
+          confidence = 85;
+        }
+      } else {
+        timeToFlood = 72;
+        confidence = 70;
       }
+
+      const siteName = timeSeries.sourceInfo?.siteName || 'Unknown Location';
 
       return {
         location: siteName,
@@ -85,7 +104,7 @@ export const dataIntegrationService = {
         predictedLevel: parseFloat(predictedLevel.toFixed(2)),
         threshold: parseFloat(floodThreshold.toFixed(2)),
         timeToFlood,
-        confidence: 85
+        confidence
       };
     } catch (error) {
       console.error('Error fetching USGS flood data:', error);
