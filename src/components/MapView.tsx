@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
 import { Alert, WildfireData } from '../types';
 import { CommunityReport } from '../services/communityReportService';
-import { heatmapService, HeatmapLayer } from '../services/heatmapService';
+import { heatmapService, HeatmapLayer, HeatmapZone } from '../services/heatmapService';
 import { Layers } from 'lucide-react';
 
 interface MapViewProps {
@@ -28,6 +28,7 @@ export function MapView({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const heatLayersRef = useRef<Map<HeatmapLayer, any>>(new Map());
+  const zoneBordersRef = useRef<Map<HeatmapLayer, L.Circle[]>>(new Map());
 
   const [activeHeatmaps, setActiveHeatmaps] = useState<Set<HeatmapLayer>>(new Set(['flood', 'wildfire', 'pollution', 'heat', 'eco']));
   const [showHeatmapControls, setShowHeatmapControls] = useState(false);
@@ -213,12 +214,13 @@ export function MapView({
 
     const allLayers: HeatmapLayer[] = ['flood', 'wildfire', 'pollution', 'heat', 'eco'];
 
-    allLayers.forEach(layerType => {
+    allLayers.forEach(async (layerType) => {
       const existingLayer = heatLayersRef.current.get(layerType);
+      const existingBorders = zoneBordersRef.current.get(layerType);
 
       if (activeHeatmaps.has(layerType)) {
         if (!existingLayer) {
-          const heatmapData = heatmapService.getHeatmapForLayer(layerType);
+          const { points: heatmapData, zones } = await heatmapService.getHeatmapForLayerFromDB(layerType);
           const layerInfo = heatmapService.getLayerInfo(layerType);
 
           const heatPoints: [number, number, number][] = heatmapData.map(point => [
@@ -245,11 +247,46 @@ export function MapView({
           }).addTo(mapInstanceRef.current!);
 
           heatLayersRef.current.set(layerType, heatLayer);
+
+          const borderColors: Record<HeatmapLayer, string> = {
+            flood: '#3b82f6',
+            wildfire: '#f97316',
+            pollution: '#a855f7',
+            heat: '#ef4444',
+            eco: '#10b981'
+          };
+
+          const circles: L.Circle[] = zones.map(zone => {
+            const circle = L.circle([zone.center[0], zone.center[1]], {
+              color: borderColors[layerType],
+              fillColor: 'transparent',
+              fillOpacity: 0,
+              weight: 2,
+              opacity: 0.6,
+              radius: zone.radius * 111000
+            }).addTo(mapInstanceRef.current!);
+
+            if (zone.name) {
+              circle.bindTooltip(zone.name, {
+                permanent: false,
+                direction: 'center',
+                className: 'zone-tooltip'
+              });
+            }
+
+            return circle;
+          });
+
+          zoneBordersRef.current.set(layerType, circles);
         }
       } else {
         if (existingLayer) {
           mapInstanceRef.current!.removeLayer(existingLayer);
           heatLayersRef.current.delete(layerType);
+        }
+        if (existingBorders) {
+          existingBorders.forEach(circle => mapInstanceRef.current!.removeLayer(circle));
+          zoneBordersRef.current.delete(layerType);
         }
       }
     });
@@ -330,6 +367,19 @@ export function MapView({
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        .zone-tooltip {
+          background-color: rgba(0, 0, 0, 0.8);
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 4px 8px;
+          font-size: 12px;
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .zone-tooltip:before {
+          display: none;
         }
       `}</style>
     </div>

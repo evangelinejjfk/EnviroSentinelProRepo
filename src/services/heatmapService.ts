@@ -1,7 +1,16 @@
+import { supabase } from '../lib/supabase';
+
 export interface HeatmapPoint {
   lat: number;
   lng: number;
   intensity: number;
+}
+
+export interface HeatmapZone {
+  center: [number, number];
+  radius: number;
+  intensity: number;
+  name?: string;
 }
 
 export type HeatmapLayer = 'flood' | 'wildfire' | 'pollution' | 'heat' | 'eco';
@@ -124,6 +133,43 @@ export const heatmapService = {
     return points;
   },
 
+  async getHeatmapForLayerFromDB(layer: HeatmapLayer): Promise<{ points: HeatmapPoint[]; zones: HeatmapZone[] }> {
+    try {
+      const { data: alerts, error } = await supabase
+        .from('alerts')
+        .select('*')
+        .eq('type', this.getAlertTypeForLayer(layer))
+        .gte('severity', this.getMinSeverityForLayer(layer));
+
+      if (error) throw error;
+
+      const zones: HeatmapZone[] = [];
+
+      if (alerts && alerts.length > 0) {
+        alerts.forEach(alert => {
+          zones.push({
+            center: [alert.latitude, alert.longitude],
+            radius: this.getRadiusForSeverity(alert.severity),
+            intensity: this.getIntensityForSeverity(alert.severity),
+            name: alert.location_name
+          });
+        });
+      } else {
+        zones.push(...this.getDefaultZonesForLayer(layer));
+      }
+
+      const points = this.generateHeatmapFromCenters(zones);
+      return { points, zones };
+    } catch (error) {
+      console.error('Error fetching heatmap from DB:', error);
+      const defaultZones = this.getDefaultZonesForLayer(layer);
+      return {
+        points: this.generateHeatmapFromCenters(defaultZones),
+        zones: defaultZones
+      };
+    }
+  },
+
   getHeatmapForLayer(layer: HeatmapLayer): HeatmapPoint[] {
     switch (layer) {
       case 'flood':
@@ -136,6 +182,78 @@ export const heatmapService = {
         return this.generateHeatIslandHeatmap();
       case 'eco':
         return this.generateEcoRouteHeatmap();
+      default:
+        return [];
+    }
+  },
+
+  getAlertTypeForLayer(layer: HeatmapLayer): string {
+    const typeMap: Record<HeatmapLayer, string> = {
+      flood: 'flood',
+      wildfire: 'wildfire',
+      pollution: 'pollution',
+      heat: 'heat_wave',
+      eco: 'pollution'
+    };
+    return typeMap[layer];
+  },
+
+  getMinSeverityForLayer(layer: HeatmapLayer): string {
+    return 'low';
+  },
+
+  getRadiusForSeverity(severity: string): number {
+    const radiusMap: Record<string, number> = {
+      critical: 2.5,
+      high: 2.0,
+      moderate: 1.5,
+      low: 1.0
+    };
+    return radiusMap[severity] || 1.0;
+  },
+
+  getIntensityForSeverity(severity: string): number {
+    const intensityMap: Record<string, number> = {
+      critical: 1.0,
+      high: 0.85,
+      moderate: 0.7,
+      low: 0.55
+    };
+    return intensityMap[severity] || 0.5;
+  },
+
+  getDefaultZonesForLayer(layer: HeatmapLayer): HeatmapZone[] {
+    switch (layer) {
+      case 'flood':
+        return [
+          { center: [29.7604, -95.3698], radius: 1.5, intensity: 0.9, name: 'Houston' },
+          { center: [30.0, -90.0], radius: 2.0, intensity: 0.85, name: 'New Orleans' },
+          { center: [25.7617, -80.1918], radius: 1.2, intensity: 0.8, name: 'Miami' }
+        ];
+      case 'wildfire':
+        return [
+          { center: [34.0522, -118.2437], radius: 2.0, intensity: 0.95, name: 'Los Angeles' },
+          { center: [37.7749, -122.4194], radius: 1.5, intensity: 0.85, name: 'San Francisco' },
+          { center: [45.5152, -122.6784], radius: 1.8, intensity: 0.9, name: 'Portland' }
+        ];
+      case 'pollution':
+        return [
+          { center: [40.7128, -74.0060], radius: 1.5, intensity: 0.9, name: 'New York' },
+          { center: [34.0522, -118.2437], radius: 2.0, intensity: 0.95, name: 'Los Angeles' },
+          { center: [41.8781, -87.6298], radius: 1.3, intensity: 0.85, name: 'Chicago' }
+        ];
+      case 'heat':
+        return [
+          { center: [33.4484, -112.0740], radius: 2.0, intensity: 1.0, name: 'Phoenix' },
+          { center: [36.1699, -115.1398], radius: 1.5, intensity: 0.95, name: 'Las Vegas' },
+          { center: [29.4241, -98.4936], radius: 1.3, intensity: 0.9, name: 'San Antonio' }
+        ];
+      case 'eco':
+        return [
+          { center: [34.0522, -118.2437], radius: 1.8, intensity: 0.95, name: 'Los Angeles' },
+          { center: [40.7128, -74.0060], radius: 1.5, intensity: 0.9, name: 'New York' },
+          { center: [41.8781, -87.6298], radius: 1.3, intensity: 0.85, name: 'Chicago' }
+        ];
       default:
         return [];
     }
