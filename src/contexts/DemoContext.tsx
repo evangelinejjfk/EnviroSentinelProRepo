@@ -1,13 +1,15 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Location } from './LocationContext';
 
-export type DemoScenario = 'none' | 'sacramento-flood' | 'california-wildfire' | 'phoenix-heatwave';
+export type DemoScenario = 'none' | 'sacramento' | 'santa-rosa' | 'phoenix' | 'sacramento-flood' | 'california-wildfire' | 'phoenix-heatwave';
 
 interface DemoContextType {
   isDemoMode: boolean;
   activeScenario: DemoScenario;
   loadScenario: (scenario: DemoScenario) => void;
   exitDemoMode: () => void;
+  setDemoMode: (enabled: boolean) => void;
+  setScenario: (scenario: string) => void;
 }
 
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
@@ -18,6 +20,17 @@ interface DemoProviderProps {
 
 export const DEMO_SCENARIOS: Record<DemoScenario, { location: Location; description: string } | null> = {
   none: null,
+  'sacramento': {
+    location: {
+      latitude: 38.5816,
+      longitude: -121.4944,
+      city: 'Sacramento',
+      state: 'CA',
+      country: 'USA',
+      displayName: 'Sacramento, CA'
+    },
+    description: 'Simulated major flood event with river overflow and urban flooding'
+  },
   'sacramento-flood': {
     location: {
       latitude: 38.5816,
@@ -29,6 +42,17 @@ export const DEMO_SCENARIOS: Record<DemoScenario, { location: Location; descript
     },
     description: 'Simulated major flood event with river overflow and urban flooding'
   },
+  'santa-rosa': {
+    location: {
+      latitude: 38.4404,
+      longitude: -122.7141,
+      city: 'Santa Rosa',
+      state: 'CA',
+      country: 'USA',
+      displayName: 'Santa Rosa, CA'
+    },
+    description: 'Simulated wildfire with high winds and dry conditions'
+  },
   'california-wildfire': {
     location: {
       latitude: 38.4404,
@@ -39,6 +63,17 @@ export const DEMO_SCENARIOS: Record<DemoScenario, { location: Location; descript
       displayName: 'Santa Rosa, CA'
     },
     description: 'Simulated wildfire with high winds and dry conditions'
+  },
+  'phoenix': {
+    location: {
+      latitude: 33.4484,
+      longitude: -112.0740,
+      city: 'Phoenix',
+      state: 'AZ',
+      country: 'USA',
+      displayName: 'Phoenix, AZ'
+    },
+    description: 'Simulated extreme heat wave with record temperatures'
   },
   'phoenix-heatwave': {
     location: {
@@ -54,21 +89,55 @@ export const DEMO_SCENARIOS: Record<DemoScenario, { location: Location; descript
 };
 
 export function DemoProvider({ children }: DemoProviderProps) {
-  const [isDemoMode, setIsDemoMode] = useState(false);
-  const [activeScenario, setActiveScenario] = useState<DemoScenario>('none');
+  const [isDemoMode, setIsDemoModeState] = useState(() => {
+    const saved = localStorage.getItem('demoMode');
+    return saved ? JSON.parse(saved) : true;
+  });
+  const [activeScenario, setActiveScenario] = useState<DemoScenario>(() => {
+    const saved = localStorage.getItem('activeScenario');
+    return saved ? (saved as DemoScenario) : 'none';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('demoMode', JSON.stringify(isDemoMode));
+  }, [isDemoMode]);
+
+  useEffect(() => {
+    localStorage.setItem('activeScenario', activeScenario);
+  }, [activeScenario]);
 
   const loadScenario = (scenario: DemoScenario) => {
     setActiveScenario(scenario);
-    setIsDemoMode(scenario !== 'none');
+    setIsDemoModeState(scenario !== 'none');
   };
 
   const exitDemoMode = () => {
     setActiveScenario('none');
-    setIsDemoMode(false);
+    setIsDemoModeState(false);
+  };
+
+  const setDemoMode = (enabled: boolean) => {
+    setIsDemoModeState(enabled);
+    if (!enabled) {
+      setActiveScenario('none');
+    }
+  };
+
+  const setScenario = (scenario: string) => {
+    const validScenario = scenario as DemoScenario;
+    setActiveScenario(validScenario);
+    setIsDemoModeState(validScenario !== 'none');
   };
 
   return (
-    <DemoContext.Provider value={{ isDemoMode, activeScenario, loadScenario, exitDemoMode }}>
+    <DemoContext.Provider value={{
+      isDemoMode,
+      activeScenario,
+      loadScenario,
+      exitDemoMode,
+      setDemoMode,
+      setScenario
+    }}>
       {children}
     </DemoContext.Provider>
   );

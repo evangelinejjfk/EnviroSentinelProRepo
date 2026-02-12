@@ -3,7 +3,10 @@ import {
   Settings as SettingsIcon, Globe2, Map, Database,
   Monitor, Info, ChevronRight, Check, Server, Satellite,
   CloudRain, Flame, Droplets, Thermometer, Navigation, ExternalLink,
+  BookOpen, Repeat,
 } from 'lucide-react';
+import { useDemo } from '../contexts/DemoContext';
+import { useTutorial } from '../contexts/TutorialContext';
 
 interface AppSettings {
   units: 'metric' | 'imperial';
@@ -37,6 +40,8 @@ export function Settings() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [activeSection, setActiveSection] = useState('general');
   const [saved, setSaved] = useState(false);
+  const { isDemoMode, setDemoMode } = useDemo();
+  const { restartTutorial } = useTutorial();
 
   useEffect(() => {
     try {
@@ -125,6 +130,33 @@ export function Settings() {
           <div className="lg:col-span-3">
             {activeSection === 'general' && (
               <SettingsPanel title="General Settings">
+                <SettingRow label="Data Mode" description="Switch between real data and demo scenarios">
+                  <div className="flex items-center space-x-3">
+                    <span className={`text-xs font-medium ${!isDemoMode ? 'text-emerald-700' : 'text-slate-400'}`}>
+                      Real Data
+                    </span>
+                    <Toggle checked={isDemoMode} onChange={setDemoMode} />
+                    <span className={`text-xs font-medium ${isDemoMode ? 'text-blue-700' : 'text-slate-400'}`}>
+                      Demo Mode
+                    </span>
+                  </div>
+                </SettingRow>
+                {isDemoMode && (
+                  <div className="py-3 px-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-xs text-blue-800 mb-2">
+                      Demo mode uses simulated data for educational and presentation purposes.
+                    </p>
+                  </div>
+                )}
+                <SettingRow label="Tutorial" description="Restart the interactive tutorial walkthrough">
+                  <button
+                    onClick={restartTutorial}
+                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+                  >
+                    <Repeat className="w-4 h-4" />
+                    <span>Restart Tutorial</span>
+                  </button>
+                </SettingRow>
                 <SettingRow label="Measurement Units" description="Choose metric or imperial units across the platform">
                   <select
                     value={settings.units}

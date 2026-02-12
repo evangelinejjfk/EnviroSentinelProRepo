@@ -3,11 +3,14 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MobileMenu } from './components/MobileMenu';
-import { OnboardingModal } from './components/OnboardingModal';
+import { TutorialWelcome } from './components/TutorialWelcome';
+import { TutorialOverlay } from './components/TutorialOverlay';
+import { TutorialCompletion } from './components/TutorialCompletion';
 import { LocationProvider } from './contexts/LocationContext';
 import { FilterProvider } from './contexts/FilterContext';
 import { ScenarioProvider } from './contexts/ScenarioContext';
 import { DemoProvider } from './contexts/DemoContext';
+import { TutorialProvider } from './contexts/TutorialContext';
 import { alertService } from './services/alertService';
 import { initializeDemoData } from './services/demoData';
 import { Alert } from './types';
@@ -57,40 +60,45 @@ function App() {
         <FilterProvider>
           <ScenarioProvider>
             <DemoProvider>
-              <OnboardingModal />
-              <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex flex-col">
-                <Header
-                  activeAlerts={alerts.length}
-                  floodAlerts={floodAlerts}
-                  wildfireAlerts={wildfireAlerts}
-                  pollutionAlerts={pollutionAlerts}
-                  heatAlerts={heatAlerts}
-                />
+              <TutorialProvider>
+                <TutorialWelcome />
+                <TutorialCompletion />
+                <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex flex-col">
+                  <Header
+                    activeAlerts={alerts.length}
+                    floodAlerts={floodAlerts}
+                    wildfireAlerts={wildfireAlerts}
+                    pollutionAlerts={pollutionAlerts}
+                    heatAlerts={heatAlerts}
+                  />
 
-                <div className="flex flex-1 overflow-hidden">
-                  <Sidebar />
+                  <div className="flex flex-1 overflow-hidden">
+                    <Sidebar />
 
-                  <main className="flex-1 overflow-hidden">
-                    <Routes>
-                      <Route path="/" element={<DashboardPage />} />
-                      <Route path="/floods" element={<FloodsPage />} />
-                      <Route path="/wildfires" element={<WildfiresPage />} />
-                      <Route path="/heat" element={<HeatPage />} />
-                      <Route path="/microplastics" element={<MicroplasticsPage />} />
-                      <Route path="/ecoroute" element={<EcoRoutePage />} />
-                      <Route path="/community" element={<CommunityPage />} />
-                      <Route path="/analytics" element={<DashboardPage />} />
-                      <Route path="/risk-correlations" element={<RiskCorrelationsPage />} />
-                      <Route path="/impact" element={<ImpactPage />} />
-                      <Route path="/data-sources" element={<DataSourcesPage />} />
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/settings" element={<SettingsPage />} />
-                    </Routes>
-                  </main>
+                    <main className="flex-1 overflow-hidden">
+                      <Routes>
+                        <Route path="/" element={<DashboardPage />} />
+                        <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/floods" element={<FloodsPage />} />
+                        <Route path="/wildfires" element={<WildfiresPage />} />
+                        <Route path="/heat" element={<HeatPage />} />
+                        <Route path="/microplastics" element={<MicroplasticsPage />} />
+                        <Route path="/ecoroute" element={<EcoRoutePage />} />
+                        <Route path="/community" element={<CommunityPage />} />
+                        <Route path="/analytics" element={<DashboardPage />} />
+                        <Route path="/risk-correlations" element={<RiskCorrelationsPage />} />
+                        <Route path="/impact" element={<ImpactPage />} />
+                        <Route path="/data-sources" element={<DataSourcesPage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                      </Routes>
+                    </main>
 
-                  <MobileMenu />
+                    <MobileMenu />
+                  </div>
+                  <TutorialOverlay />
                 </div>
-              </div>
+              </TutorialProvider>
             </DemoProvider>
           </ScenarioProvider>
         </FilterProvider>
