@@ -81,7 +81,7 @@ export default function ImpactPage() {
   };
 
   return (
-    <div className="h-full overflow-auto bg-gradient-to-br from-emerald-50 to-teal-50">
+    <div className="h-full overflow-auto bg-gradient-to-br from-emerald-50 to-teal-50" data-tutorial="page-content">
       <div className="max-w-6xl mx-auto p-8">
         <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
           <div className="flex items-center mb-4">

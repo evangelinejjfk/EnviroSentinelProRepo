@@ -15,7 +15,7 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="h-full overflow-auto relative">
+    <div className="h-full overflow-auto relative" data-tutorial="page-content">
       <CommunityReports />
       <button
         onClick={() => setShowSubmission(true)}

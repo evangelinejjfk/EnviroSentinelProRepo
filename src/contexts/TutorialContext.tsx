@@ -5,7 +5,8 @@ export type TutorialStep = {
   title: string;
   description: string;
   page: string;
-  highlightElement?: string;
+  target?: string;
+  placement?: 'top' | 'bottom' | 'left' | 'right';
   explanation: string;
   whyItMatters: string;
 };
@@ -29,117 +30,102 @@ const TutorialContext = createContext<TutorialContextType | undefined>(undefined
 
 const tutorialSteps: TutorialStep[] = [
   {
-    id: 'welcome',
-    title: 'Welcome to EnviroSentinel Pro',
-    description: 'Your comprehensive environmental monitoring platform',
-    page: '/',
-    explanation: 'EnviroSentinel Pro combines real-time data from multiple sources to provide actionable environmental insights.',
-    whyItMatters: 'Climate risks are interconnected. Understanding them together helps you make informed decisions.'
-  },
-  {
     id: 'dashboard',
     title: 'Dashboard Overview',
-    description: 'See all environmental risks at a glance',
-    page: '/dashboard',
+    description: 'This is your main command center. All environmental risks are displayed here at a glance.',
+    page: '/',
+    target: '[data-tutorial="dashboard-content"]',
+    placement: 'bottom',
     explanation: 'The dashboard shows active alerts, risk summaries, and key metrics for your selected location.',
     whyItMatters: 'Quick access to critical information helps you respond to environmental threats faster.'
   },
   {
+    id: 'alert-summary',
+    title: 'Alert Summary',
+    description: 'These counters show active alerts by category. Keep an eye on high numbers.',
+    page: '/',
+    target: '[data-tutorial="alert-summary"]',
+    placement: 'bottom',
+    explanation: 'Each counter tracks a different environmental threat in real-time.',
+    whyItMatters: 'Monitoring alert counts helps you quickly identify which threats need attention.'
+  },
+  {
     id: 'location',
     title: 'Location Selection',
-    description: 'Choose your area of interest',
-    page: '/dashboard',
-    highlightElement: 'location-selector',
-    explanation: 'You can search for any location or use your current position to get localized environmental data.',
+    description: 'Change your monitoring location here. Data updates automatically for the selected area.',
+    page: '/',
+    target: '[data-tutorial="location-selector"]',
+    placement: 'bottom',
+    explanation: 'Search for any location or use your current position to get localized environmental data.',
     whyItMatters: 'Environmental risks vary greatly by location. Personalized data helps you prepare better.'
+  },
+  {
+    id: 'scenario-selector',
+    title: 'Time Projections',
+    description: 'Switch between present-day and future projections to see how risks may evolve.',
+    page: '/',
+    target: '[data-tutorial="scenario-selector"]',
+    placement: 'bottom',
+    explanation: 'See how environmental risks may change under different climate scenarios (present, 2030, 2050).',
+    whyItMatters: 'Planning requires foresight. Understanding future risks helps communities adapt proactively.'
+  },
+  {
+    id: 'sidebar-nav',
+    title: 'Navigation',
+    description: 'Use the sidebar to navigate between different monitoring modules.',
+    page: '/',
+    target: '[data-tutorial="sidebar-nav"]',
+    placement: 'right',
+    explanation: 'Each section focuses on a specific environmental threat or feature.',
+    whyItMatters: 'Organized navigation lets you quickly access the data you need during emergencies.'
   },
   {
     id: 'floods',
     title: 'Flood Forecasting',
-    description: 'Predict flood risks before they happen',
+    description: 'Monitor flood risk levels, precipitation forecasts, and river conditions in your area.',
     page: '/floods',
-    explanation: 'Our flood forecasting system combines precipitation data, terrain analysis, and historical patterns.',
+    target: '[data-tutorial="page-content"]',
+    placement: 'top',
+    explanation: 'The flood forecasting system combines precipitation data, terrain analysis, and historical patterns.',
     whyItMatters: 'Early flood warnings can save lives and reduce property damage by 30-40%.'
   },
   {
     id: 'wildfires',
     title: 'Wildfire Detection',
-    description: 'Track active wildfires in real-time',
+    description: 'Track active wildfires, fire danger ratings, and smoke conditions near you.',
     page: '/wildfires',
+    target: '[data-tutorial="page-content"]',
+    placement: 'top',
     explanation: 'Satellite data and ground sensors detect wildfires and predict their spread patterns.',
     whyItMatters: 'Wildfires spread rapidly. Minutes matter when evacuating or protecting property.'
   },
   {
     id: 'heat',
     title: 'Heat Island Monitoring',
-    description: 'Urban heat islands and extreme temperatures',
+    description: 'Track heat waves and identify urban areas with dangerously elevated temperatures.',
     page: '/heat',
-    explanation: 'Track heat waves and identify urban areas with elevated temperatures due to infrastructure.',
+    target: '[data-tutorial="page-content"]',
+    placement: 'top',
+    explanation: 'Monitor heat waves and identify urban areas with elevated temperatures due to infrastructure.',
     whyItMatters: 'Heat-related deaths have increased 60% in recent decades. Prevention starts with awareness.'
-  },
-  {
-    id: 'microplastics',
-    title: 'Microplastic Tracking',
-    description: 'Monitor water contamination',
-    page: '/microplastics',
-    explanation: 'Track microplastic pollution in water sources using sensor networks and predictive models.',
-    whyItMatters: 'Microplastics affect drinking water quality and ecosystem health. Know your exposure.'
-  },
-  {
-    id: 'ecoroute',
-    title: 'EcoRoute Optimization',
-    description: 'Plan emission-efficient routes',
-    page: '/ecoroute',
-    explanation: 'Calculate routes that minimize emissions while considering air quality and environmental exposure.',
-    whyItMatters: 'Transportation accounts for 27% of emissions. Every route choice makes a difference.'
   },
   {
     id: 'community',
     title: 'Community Reports',
-    description: 'Crowdsourced environmental observations',
+    description: 'See reports from other users and submit your own environmental observations.',
     page: '/community',
+    target: '[data-tutorial="page-content"]',
+    placement: 'top',
     explanation: 'Community members submit real-time observations that complement official data sources.',
     whyItMatters: 'Local knowledge fills gaps in satellite and sensor data. Your reports help others stay safe.'
   },
   {
-    id: 'analytics',
-    title: 'Risk Analytics',
-    description: 'Understand how risks connect',
-    page: '/risk-correlations',
-    explanation: 'Visualize relationships between different environmental risks and identify compound threats.',
-    whyItMatters: 'Risks rarely occur in isolation. Compound risks (drought + heat) are deadlier than single threats.'
-  },
-  {
-    id: 'filters',
-    title: 'Data Filtering',
-    description: 'Focus on what matters to you',
-    page: '/dashboard',
-    highlightElement: 'filter-panel',
-    explanation: 'Filter by risk severity, time range, and specific hazard types to customize your view.',
-    whyItMatters: 'Not all alerts are relevant to everyone. Filters help you focus on your priorities.'
-  },
-  {
-    id: 'scenarios',
-    title: 'Time Projections',
-    description: 'Explore future climate scenarios',
-    page: '/dashboard',
-    highlightElement: 'scenario-selector',
-    explanation: 'See how environmental risks may evolve under different climate scenarios (present, 2030, 2050).',
-    whyItMatters: 'Planning requires foresight. Understanding future risks helps communities adapt proactively.'
-  },
-  {
-    id: 'alerts',
-    title: 'Alert Configuration',
-    description: 'Customize your notifications',
-    page: '/settings',
-    explanation: 'Configure which alerts you receive and set thresholds for different risk levels.',
-    whyItMatters: 'Alert fatigue is real. Personalized notifications ensure you see what matters without overwhelm.'
-  },
-  {
     id: 'impact',
     title: 'Personal Impact',
-    description: 'Track your environmental footprint',
+    description: 'Track your environmental footprint and see how your actions make a difference.',
     page: '/impact',
+    target: '[data-tutorial="page-content"]',
+    placement: 'top',
     explanation: 'Monitor your carbon footprint, water usage, and environmental impact over time.',
     whyItMatters: 'Individual actions matter. Tracking helps you see progress and stay motivated.'
   },
@@ -147,7 +133,7 @@ const tutorialSteps: TutorialStep[] = [
     id: 'completion',
     title: 'Tutorial Complete',
     description: "You're ready to use EnviroSentinel Pro!",
-    page: '/dashboard',
+    page: '/',
     explanation: 'You now understand all major features. Switch to real data mode to monitor your actual location.',
     whyItMatters: 'Knowledge is power. Use these tools to protect yourself and your community from environmental threats.'
   }
@@ -216,6 +202,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
   const restartTutorial = () => {
     setCurrentStep(0);
+    setSelectedScenario(null);
     setIsActive(true);
     localStorage.removeItem('tutorialCompleted');
     localStorage.setItem('tutorialStep', '0');

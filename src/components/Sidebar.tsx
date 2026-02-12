@@ -29,7 +29,7 @@ export function Sidebar() {
 
   return (
     <aside className="bg-gradient-to-b from-emerald-950 to-teal-950 text-white w-64 min-h-screen p-4 hidden lg:block border-r border-emerald-800/30 overflow-y-auto">
-      <nav className="space-y-1.5">
+      <nav className="space-y-1.5" data-tutorial="sidebar-nav">
         {menuItems.map((item) => {
           const Icon = item.icon;
 

@@ -36,7 +36,7 @@ export function Header({ floodAlerts, wildfireAlerts, pollutionAlerts = 0, heatA
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="hidden lg:flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/20">
+            <div data-tutorial="scenario-selector" className="hidden lg:flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/20">
               <Calendar className="w-4 h-4 text-emerald-300" />
               <select
                 value={scenario}
@@ -58,11 +58,13 @@ export function Header({ floodAlerts, wildfireAlerts, pollutionAlerts = 0, heatA
               </div>
             )}
 
-            <LocationSelector />
+            <div data-tutorial="location-selector">
+              <LocationSelector />
+            </div>
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center space-x-4 mt-4">
+        <div className="hidden lg:flex items-center space-x-4 mt-4" data-tutorial="alert-summary">
           <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/20">
             <CloudRain className="w-4 h-4 text-blue-300" />
             <div>
