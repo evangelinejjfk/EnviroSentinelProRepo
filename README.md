@@ -1,4 +1,4 @@
-# Climate Guardian
+# EnviroSentinel Pro
 
 A web-based environmental monitoring platform that tracks climate risks in real-time and helps communities prepare for disasters.
 
