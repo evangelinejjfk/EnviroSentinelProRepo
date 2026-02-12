@@ -10,6 +10,8 @@ import { HeatIslandPredictor } from './components/HeatIslandPredictor';
 import { EcoRoute } from './components/EcoRoute';
 import { Analytics } from './components/Analytics';
 import { Settings } from './components/Settings';
+import CommunityReports from './components/CommunityReports';
+import ReportSubmission from './components/ReportSubmission';
 import { alertService } from './services/alertService';
 import { initializeDemoData } from './services/demoData';
 import { Alert } from './types';
@@ -55,6 +57,10 @@ function App() {
         return <HeatIslandPredictor />;
       case 'eco-route':
         return <EcoRoute />;
+      case 'community-reports':
+        return <CommunityReports />;
+      case 'submit-report':
+        return <ReportSubmission onSuccess={() => setActiveView('community-reports')} />;
       case 'analytics':
         return <Analytics />;
       case 'settings':

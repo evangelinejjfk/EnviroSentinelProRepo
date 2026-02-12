@@ -4,6 +4,7 @@ import { AlertCard } from './AlertCard';
 import { Alert, WildfireData } from '../types';
 import { alertService } from '../services/alertService';
 import { dataIntegrationService } from '../services/dataIntegration';
+import { communityReportService, CommunityReport } from '../services/communityReportService';
 import { RefreshCw, CloudRain, Flame, Droplets, Thermometer, Navigation, TrendingUp, Globe2 } from 'lucide-react';
 
 interface DashboardProps {
@@ -13,6 +14,7 @@ interface DashboardProps {
 export function Dashboard({ onViewChange }: DashboardProps) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [wildfires, setWildfires] = useState<WildfireData[]>([]);
+  const [communityReports, setCommunityReports] = useState<CommunityReport[]>([]);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,13 +26,15 @@ export function Dashboard({ onViewChange }: DashboardProps) {
 
   const loadData = async () => {
     try {
-      const [alertsData, wildfiresData] = await Promise.all([
+      const [alertsData, wildfiresData, reportsData] = await Promise.all([
         alertService.getActiveAlerts(),
-        dataIntegrationService.fetchWildfireHotspots(49, 25, -66, -125)
+        dataIntegrationService.fetchWildfireHotspots(49, 25, -66, -125),
+        communityReportService.getReports({ limit: 50 })
       ]);
 
       setAlerts(alertsData);
       setWildfires(wildfiresData);
+      setCommunityReports(reportsData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -207,6 +211,7 @@ export function Dashboard({ onViewChange }: DashboardProps) {
               <MapView
                 alerts={alerts}
                 wildfires={wildfires}
+                communityReports={communityReports}
                 onAlertClick={setSelectedAlert}
                 center={[39.8283, -98.5795]}
                 zoom={4}

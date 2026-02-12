@@ -1,4 +1,4 @@
-import { Map, CloudRain, Flame, Droplets, Thermometer, Navigation, BarChart3, Settings } from 'lucide-react';
+import { Map, CloudRain, Flame, Droplets, Thermometer, Navigation, Users, AlertTriangle, BarChart3, Settings } from 'lucide-react';
 
 interface SidebarProps {
   activeView: string;
@@ -13,6 +13,8 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
     { id: 'microplastic', label: 'Microplastic Mapper', icon: Droplets },
     { id: 'heat-island', label: 'Heat Island Predictor', icon: Thermometer },
     { id: 'eco-route', label: 'EcoRoute', icon: Navigation },
+    { id: 'community-reports', label: 'Community Reports', icon: Users },
+    { id: 'submit-report', label: 'Submit Report', icon: AlertTriangle },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];

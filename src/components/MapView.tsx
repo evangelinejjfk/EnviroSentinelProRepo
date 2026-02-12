@@ -2,10 +2,12 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Alert, WildfireData } from '../types';
+import { CommunityReport } from '../services/communityReportService';
 
 interface MapViewProps {
   alerts: Alert[];
   wildfires: WildfireData[];
+  communityReports?: CommunityReport[];
   onAlertClick?: (alert: Alert) => void;
   center?: [number, number];
   zoom?: number;
@@ -14,6 +16,7 @@ interface MapViewProps {
 export function MapView({
   alerts,
   wildfires,
+  communityReports = [],
   onAlertClick,
   center = [39.8283, -98.5795],
   zoom = 4
@@ -132,7 +135,71 @@ export function MapView({
 
       markersRef.current.push(marker);
     });
-  }, [alerts, wildfires, onAlertClick]);
+
+    communityReports.forEach(report => {
+      const severityColors: Record<string, string> = {
+        critical: '#dc2626',
+        high: '#ea580c',
+        moderate: '#eab308',
+        low: '#3b82f6'
+      };
+
+      const reportTypeIcons: Record<string, string> = {
+        air_quality: '💨',
+        flooding: '🌊',
+        wildfire: '🔥',
+        heat: '☀️',
+        pollution: '🏭',
+        wildlife: '🦋',
+        water_quality: '💧',
+        other: '📍'
+      };
+
+      const icon = L.divIcon({
+        className: 'custom-marker',
+        html: `
+          <div style="
+            background-color: ${severityColors[report.severity]};
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 3px solid #10b981;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+          ">
+            ${reportTypeIcons[report.report_type] || '📍'}
+          </div>
+        `,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
+      const marker = L.marker([report.latitude, report.longitude], { icon })
+        .addTo(mapInstanceRef.current!)
+        .bindPopup(
+          `<div style="min-width: 220px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span style="background-color: #10b981; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold;">COMMUNITY</span>
+              <span style="background-color: ${severityColors[report.severity]}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold;">${report.severity.toUpperCase()}</span>
+            </div>
+            <h3 style="font-weight: bold; margin-bottom: 8px;">${report.title}</h3>
+            <p style="font-size: 14px; margin-bottom: 8px;">${report.description}</p>
+            ${report.photo_url ? `<img src="${report.photo_url}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;" />` : ''}
+            <div style="font-size: 12px; color: #666;">
+              <div><strong>Location:</strong> ${report.location_name}</div>
+              <div><strong>Type:</strong> ${report.report_type.replace('_', ' ')}</div>
+              <div><strong>Upvotes:</strong> ${report.upvotes} 👍</div>
+              <div><strong>Status:</strong> ${report.status === 'verified' ? '✓ Verified' : 'Pending Review'}</div>
+            </div>
+          </div>`
+        );
+
+      markersRef.current.push(marker);
+    });
+  }, [alerts, wildfires, communityReports, onAlertClick]);
 
   return (
     <div className="relative w-full h-full">

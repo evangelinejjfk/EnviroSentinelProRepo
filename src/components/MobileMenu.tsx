@@ -1,4 +1,4 @@
-import { Map, CloudRain, Flame, Droplets, Thermometer, Navigation, BarChart3, Settings, X, Menu } from 'lucide-react';
+import { Map, CloudRain, Flame, Droplets, Thermometer, Navigation, Users, AlertTriangle, BarChart3, Settings, X, Menu } from 'lucide-react';
 import { useState } from 'react';
 
 interface MobileMenuProps {
@@ -16,6 +16,8 @@ export function MobileMenu({ activeView, onViewChange }: MobileMenuProps) {
     { id: 'microplastic', label: 'Microplastic Mapper', icon: Droplets },
     { id: 'heat-island', label: 'Heat Island Predictor', icon: Thermometer },
     { id: 'eco-route', label: 'EcoRoute', icon: Navigation },
+    { id: 'community-reports', label: 'Community Reports', icon: Users },
+    { id: 'submit-report', label: 'Submit Report', icon: AlertTriangle },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
