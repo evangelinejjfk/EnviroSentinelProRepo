@@ -52,6 +52,12 @@ export function MapView({
   }, []);
 
   useEffect(() => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo(center, zoom, { duration: 1 });
+    }
+  }, [center[0], center[1], zoom]);
+
+  useEffect(() => {
     if (!mapInstanceRef.current) return;
 
     markersRef.current.forEach(marker => marker.remove());

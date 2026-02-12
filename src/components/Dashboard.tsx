@@ -10,6 +10,7 @@ import { dataIntegrationService } from '../services/dataIntegration';
 import { communityReportService, CommunityReport } from '../services/communityReportService';
 import { RefreshCw, CloudRain, Flame, Droplets, Thermometer, Navigation, TrendingUp, Globe2 } from 'lucide-react';
 import { useFilters } from '../contexts/FilterContext';
+import { useLocation } from '../contexts/LocationContext';
 
 interface DashboardProps {
   onViewChange?: (view: string) => void;
@@ -24,6 +25,12 @@ export function Dashboard({ onViewChange }: DashboardProps) {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { filters } = useFilters();
+  const { location } = useLocation();
+
+  const mapCenter: [number, number] = location
+    ? [location.latitude, location.longitude]
+    : [39.8283, -98.5795];
+  const mapZoom = location ? 8 : 4;
 
   useEffect(() => {
     loadData();
@@ -232,8 +239,8 @@ export function Dashboard({ onViewChange }: DashboardProps) {
                 wildfires={wildfires}
                 communityReports={communityReports}
                 onAlertClick={setSelectedAlert}
-                center={[39.8283, -98.5795]}
-                zoom={4}
+                center={mapCenter}
+                zoom={mapZoom}
               />
             </div>
           </div>
