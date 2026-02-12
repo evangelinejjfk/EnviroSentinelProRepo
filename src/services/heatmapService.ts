@@ -102,13 +102,13 @@ export const heatmapService = {
 
     centers.forEach(({ center, radius, intensity }) => {
       const [centerLat, centerLng] = center;
-      const numPoints = Math.floor(radius * 40);
+      const numPoints = Math.floor(radius * 80);
 
       for (let i = 0; i < numPoints; i++) {
         const angle = Math.random() * Math.PI * 2;
         const distance = Math.random() * radius;
 
-        const pointIntensity = intensity * (1 - distance / radius) * (0.7 + Math.random() * 0.3);
+        const pointIntensity = intensity * (1 - distance / radius * 0.5) * (0.85 + Math.random() * 0.15);
 
         const lat = centerLat + (distance * Math.cos(angle));
         const lng = centerLng + (distance * Math.sin(angle));
@@ -116,7 +116,7 @@ export const heatmapService = {
         points.push({
           lat,
           lng,
-          intensity: Math.max(0.1, Math.min(1, pointIntensity))
+          intensity: Math.max(0.3, Math.min(1, pointIntensity))
         });
       }
     });

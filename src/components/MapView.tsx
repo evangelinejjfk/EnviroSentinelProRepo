@@ -228,18 +228,19 @@ export function MapView({
           ]);
 
           const gradients: Record<HeatmapLayer, Record<number, string>> = {
-            flood: { 0.0: 'rgba(59, 130, 246, 0)', 0.5: 'rgba(59, 130, 246, 0.4)', 1.0: 'rgba(59, 130, 246, 0.8)' },
-            wildfire: { 0.0: 'rgba(249, 115, 22, 0)', 0.5: 'rgba(249, 115, 22, 0.4)', 1.0: 'rgba(249, 115, 22, 0.8)' },
-            pollution: { 0.0: 'rgba(139, 92, 246, 0)', 0.5: 'rgba(139, 92, 246, 0.4)', 1.0: 'rgba(139, 92, 246, 0.8)' },
-            heat: { 0.0: 'rgba(239, 68, 68, 0)', 0.5: 'rgba(239, 68, 68, 0.4)', 1.0: 'rgba(239, 68, 68, 0.8)' },
-            eco: { 0.0: 'rgba(16, 185, 129, 0)', 0.5: 'rgba(16, 185, 129, 0.4)', 1.0: 'rgba(16, 185, 129, 0.8)' }
+            flood: { 0.0: 'rgba(59, 130, 246, 0)', 0.2: 'rgba(59, 130, 246, 0.4)', 0.5: 'rgba(59, 130, 246, 0.7)', 1.0: 'rgba(59, 130, 246, 1)' },
+            wildfire: { 0.0: 'rgba(249, 115, 22, 0)', 0.2: 'rgba(249, 115, 22, 0.4)', 0.5: 'rgba(249, 115, 22, 0.7)', 1.0: 'rgba(249, 115, 22, 1)' },
+            pollution: { 0.0: 'rgba(168, 85, 247, 0)', 0.2: 'rgba(168, 85, 247, 0.4)', 0.5: 'rgba(168, 85, 247, 0.7)', 1.0: 'rgba(168, 85, 247, 1)' },
+            heat: { 0.0: 'rgba(239, 68, 68, 0)', 0.2: 'rgba(239, 68, 68, 0.4)', 0.5: 'rgba(239, 68, 68, 0.7)', 1.0: 'rgba(239, 68, 68, 1)' },
+            eco: { 0.0: 'rgba(16, 185, 129, 0)', 0.2: 'rgba(16, 185, 129, 0.4)', 0.5: 'rgba(16, 185, 129, 0.7)', 1.0: 'rgba(16, 185, 129, 1)' }
           };
 
           const heatLayer = (L as any).heatLayer(heatPoints, {
-            radius: 35,
-            blur: 25,
+            radius: 50,
+            blur: 35,
+            minOpacity: 0.4,
             maxZoom: 10,
-            max: 1.0,
+            max: 0.7,
             gradient: gradients[layerType]
           }).addTo(mapInstanceRef.current!);
 
