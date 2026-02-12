@@ -1,31 +1,25 @@
-import { Map, CloudRain, Flame, Droplets, Thermometer, Navigation, Users, AlertTriangle, BarChart3, Settings, X, Menu } from 'lucide-react';
+import { Map, CloudRain, Flame, Droplets, Thermometer, Navigation, Users, BarChart3, Settings, X, Menu, Info, Database, Award, Network } from 'lucide-react';
 import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 
-interface MobileMenuProps {
-  activeView: string;
-  onViewChange: (view: string) => void;
-}
-
-export function MobileMenu({ activeView, onViewChange }: MobileMenuProps) {
+export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { id: 'map', label: 'Overview', icon: Map },
-    { id: 'floods', label: 'Flood Forecast', icon: CloudRain },
-    { id: 'wildfires', label: 'Wildfire Detection', icon: Flame },
-    { id: 'microplastic', label: 'Microplastic Mapper', icon: Droplets },
-    { id: 'heat-island', label: 'Heat Island Predictor', icon: Thermometer },
-    { id: 'eco-route', label: 'EcoRoute', icon: Navigation },
-    { id: 'community-reports', label: 'Community Reports', icon: Users },
-    { id: 'submit-report', label: 'Submit Report', icon: AlertTriangle },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { path: '/', label: 'Dashboard', icon: Map },
+    { path: '/floods', label: 'Floods', icon: CloudRain },
+    { path: '/wildfires', label: 'Wildfires', icon: Flame },
+    { path: '/heat', label: 'Heat', icon: Thermometer },
+    { path: '/microplastics', label: 'Microplastics', icon: Droplets },
+    { path: '/ecoroute', label: 'EcoRoute', icon: Navigation },
+    { path: '/community', label: 'Community', icon: Users },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/risk-correlations', label: 'Risk Insights', icon: Network },
+    { path: '/impact', label: 'Impact', icon: Award },
+    { path: '/data-sources', label: 'Data Sources', icon: Database },
+    { path: '/about', label: 'About', icon: Info },
+    { path: '/settings', label: 'Settings', icon: Settings }
   ];
-
-  const handleViewChange = (view: string) => {
-    onViewChange(view);
-    setIsOpen(false);
-  };
 
   return (
     <>
@@ -49,21 +43,23 @@ export function MobileMenu({ activeView, onViewChange }: MobileMenuProps) {
               <nav className="space-y-1.5">
                 {menuItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = activeView === item.id;
 
                   return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleViewChange(item.id)}
-                      className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-all ${
-                        isActive
-                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg'
-                          : 'text-slate-700 hover:bg-emerald-50'
-                      }`}
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        `w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-all ${
+                          isActive
+                            ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg'
+                            : 'text-slate-700 hover:bg-emerald-50'
+                        }`
+                      }
                     >
                       <Icon className="w-5 h-5" />
                       <span className="font-medium text-sm">{item.label}</span>
-                    </button>
+                    </NavLink>
                   );
                 })}
               </nav>

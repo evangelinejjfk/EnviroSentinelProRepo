@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { MapView } from './MapView';
 import { AlertCard } from './AlertCard';
+import { PersonalizedImpact } from './PersonalizedImpact';
+import { FilterPanel } from './FilterPanel';
+import { LastUpdated } from './LastUpdated';
 import { Alert, WildfireData } from '../types';
 import { alertService } from '../services/alertService';
 import { dataIntegrationService } from '../services/dataIntegration';
 import { communityReportService, CommunityReport } from '../services/communityReportService';
 import { RefreshCw, CloudRain, Flame, Droplets, Thermometer, Navigation, TrendingUp, Globe2 } from 'lucide-react';
+import { useFilters } from '../contexts/FilterContext';
 
 interface DashboardProps {
   onViewChange?: (view: string) => void;
@@ -17,6 +21,9 @@ export function Dashboard({ onViewChange }: DashboardProps) {
   const [communityReports, setCommunityReports] = useState<CommunityReport[]>([]);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { filters } = useFilters();
 
   useEffect(() => {
     loadData();
@@ -25,6 +32,7 @@ export function Dashboard({ onViewChange }: DashboardProps) {
   }, []);
 
   const loadData = async () => {
+    setIsRefreshing(true);
     try {
       const [alertsData, wildfiresData, reportsData] = await Promise.all([
         alertService.getActiveAlerts(),
@@ -35,12 +43,24 @@ export function Dashboard({ onViewChange }: DashboardProps) {
       setAlerts(alertsData);
       setWildfires(wildfiresData);
       setCommunityReports(reportsData);
+      setLastUpdate(new Date());
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
+
+  const filteredAlerts = alerts.filter(alert => {
+    if (filters.categories.length > 0 && !filters.categories.includes(alert.type)) {
+      return false;
+    }
+    if (filters.severities.length > 0 && !filters.severities.includes(alert.severity)) {
+      return false;
+    }
+    return true;
+  });
 
   if (loading) {
     return (
@@ -110,7 +130,7 @@ export function Dashboard({ onViewChange }: DashboardProps) {
     <div className="h-full overflow-y-auto bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
             <div className="flex items-center space-x-3">
               <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-xl shadow-lg">
                 <Globe2 className="w-8 h-8 text-white" />
@@ -120,21 +140,20 @@ export function Dashboard({ onViewChange }: DashboardProps) {
                 <p className="text-slate-600">Comprehensive monitoring across five critical domains</p>
               </div>
             </div>
-            <button
-              onClick={loadData}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Refresh Data</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <LastUpdated timestamp={lastUpdate} onRefresh={loadData} isRefreshing={isRefreshing} />
+              <FilterPanel />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-white p-4 rounded-xl shadow-md border border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-slate-600 mb-1">Total Alerts</div>
-                  <div className="text-3xl font-bold text-slate-900">{alerts.length}</div>
+                  <div className="text-sm text-slate-600 mb-1">
+                    {filters.categories.length > 0 || filters.severities.length > 0 ? 'Filtered Alerts' : 'Total Alerts'}
+                  </div>
+                  <div className="text-3xl font-bold text-slate-900">{filteredAlerts.length}</div>
                 </div>
                 <TrendingUp className="w-8 h-8 text-emerald-600" />
               </div>
@@ -202,14 +221,14 @@ export function Dashboard({ onViewChange }: DashboardProps) {
           })}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2 bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
             <div className="p-4 border-b bg-gradient-to-r from-emerald-50 to-teal-50">
               <h3 className="text-lg font-bold text-slate-900">Live Climate Monitor</h3>
             </div>
             <div className="h-[500px]">
               <MapView
-                alerts={alerts}
+                alerts={filteredAlerts}
                 wildfires={wildfires}
                 communityReports={communityReports}
                 onAlertClick={setSelectedAlert}
@@ -238,13 +257,17 @@ export function Dashboard({ onViewChange }: DashboardProps) {
             )}
 
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {alerts.length === 0 ? (
+              {filteredAlerts.length === 0 ? (
                 <div className="text-center py-8 text-slate-500">
                   <p>No active alerts</p>
-                  <p className="text-sm mt-2">All systems normal</p>
+                  <p className="text-sm mt-2">
+                    {filters.categories.length > 0 || filters.severities.length > 0
+                      ? 'Try adjusting your filters'
+                      : 'All systems normal'}
+                  </p>
                 </div>
               ) : (
-                alerts.map((alert) => (
+                filteredAlerts.map((alert) => (
                   <AlertCard
                     key={alert.id}
                     alert={alert}
@@ -255,6 +278,8 @@ export function Dashboard({ onViewChange }: DashboardProps) {
             </div>
           </div>
         </div>
+
+        <PersonalizedImpact />
       </div>
     </div>
   );
